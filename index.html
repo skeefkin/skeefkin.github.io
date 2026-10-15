@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BLATOVATELmp3</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Manrope:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#12002b;--ink:#fff4ff;--mag:#ff2bd6;--cya:#19f0ff;--lim:#b6ff3b;--ora:#ff8a1f;--vio:#7a2cff;--glass:rgba(20,0,48,.62);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:400 16px/1.5 Manrope,system-ui,sans-serif;overflow-x:hidden}
+.bg{position:fixed;inset:-30%;z-index:-2;background:conic-gradient(from 0deg,#ff2bd6,#ff8a1f,#b6ff3b,#19f0ff,#7a2cff,#ff2bd6);filter:blur(90px) saturate(1.3);opacity:.55;animation:spin 40s linear infinite}
+.bg2{position:fixed;inset:0;z-index:-1;background:radial-gradient(circle at 50% 30%,transparent 0,rgba(18,0,43,.75) 70%)}
+@keyframes spin{to{transform:rotate(360deg)}}
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+main{max-width:760px;margin:0 auto;padding:28px 16px 60px}
+h1{font:800 clamp(22px,6.2vw,44px)/1.1 Unbounded,sans-serif;margin:8px 0 6px;letter-spacing:-.02em;background:linear-gradient(90deg,var(--cya),var(--mag),var(--ora),var(--lim),var(--cya));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:flow 8s linear infinite;transform:scale(var(--pulse,1));transform-origin:left}
+@keyframes flow{to{background-position:300% 0}}
+.sub{margin:0 0 22px;opacity:.85;max-width:46ch}
+.card{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid rgba(255,255,255,.18);border-radius:28px 10px 28px 10px;padding:18px;margin-bottom:16px}
+.drop{display:block;text-align:center;padding:30px 16px;cursor:pointer;border:2px dashed var(--cya);border-radius:28px 10px 28px 10px;background:rgba(25,240,255,.07);font:500 17px Unbounded,sans-serif;transition:.2s}
+.drop:hover,.drop.on{background:rgba(255,43,214,.18);border-color:var(--mag);box-shadow:0 0 40px rgba(255,43,214,.4)}
+.drop small{display:block;font:400 14px Manrope,sans-serif;opacity:.75;margin-top:6px}
+input[type=file]{display:none}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+button{font:600 15px Manrope,sans-serif;color:var(--ink);background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.28);border-radius:999px;padding:10px 16px;cursor:pointer;transition:.15s}
+button:hover{background:rgba(255,43,214,.35);border-color:var(--mag)}
+button:focus-visible,input:focus-visible,.drop:focus-within{outline:3px solid var(--lim);outline-offset:2px}
+input[type=text]{font:600 16px Manrope,system-ui,sans-serif;color:var(--ink);background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.28);border-radius:14px;padding:12px 14px}
+#play{width:62px;height:62px;padding:0;font-size:24px;background:linear-gradient(135deg,var(--mag),var(--ora));border:0;box-shadow:0 0 30px rgba(255,43,214,.6)}
+#name{font:500 15px Unbounded,sans-serif;word-break:break-word}
+#seek{flex:1 1 200px}
+.t{font-variant-numeric:tabular-nums;opacity:.85;min-width:92px;text-align:right}
+.grid{display:grid;grid-template-columns:1fr;gap:16px 22px}
+@media(min-width:640px){.grid{grid-template-columns:1fr 1fr}}
+.ctl label{display:flex;justify-content:space-between;font-weight:600;margin-bottom:4px}
+.ctl output{color:var(--lim);font-variant-numeric:tabular-nums}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:99px;background:linear-gradient(90deg,var(--vio),var(--mag),var(--ora));outline-offset:6px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--cya) 32%);border:2px solid #fff;box-shadow:0 0 16px var(--cya)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--cya);border:2px solid #fff}
+h2{font:500 15px Unbounded,sans-serif;margin:0 0 12px}
+.pre button{border-color:var(--cya)}
+.go{background:linear-gradient(90deg,var(--cya),var(--vio));border:0;font-weight:800;padding:13px 22px}
+#msg{margin-left:6px;opacity:.9}
+@media(prefers-reduced-motion:reduce){.bg,h1{animation:none}}
+</style></head>
+<body>
+<div class="bg"></div><div class="bg2"></div><canvas id="cv"></canvas>
+<main>
+<h1>BLATOVATELmp3</h1>
+<p class="sub">Загрузи mp3 и крути ручки: слоуед, реверб, бас, спидап и 8D. Слышно сразу, готовый трек можно скачать.</p>
+
+<label class="drop card" id="drop" tabindex="-1">
+<input type="file" id="file" accept="audio/*,.mp3">
+Выбери mp3 или перетащи сюда
+<small>Файл остаётся в браузере и никуда не отправляется</small>
+</label>
+
+<section class="card" id="player" hidden>
+<div class="row" style="margin-bottom:12px"><button id="play" aria-label="Играть">▶</button><div id="name"></div></div>
+<div class="row"><input type="range" id="seek" min="0" max="1000" value="0" aria-label="Перемотка"><span class="t" id="time">0:00 / 0:00</span></div>
+</section>
+
+<section class="card pre"><h2>Быстрые пресеты</h2>
+<div class="row" id="presets"></div></section>
+
+<section class="card"><h2>Эффекты</h2><div class="grid" id="ctls"></div></section>
+
+<section class="card"><h2>Сохранить результат</h2>
+<label for="tname" style="display:block;font-weight:600;margin-bottom:6px">Название трека</label>
+<input type="text" id="tname" maxlength="100" placeholder="Название файла" style="width:100%;margin-bottom:12px">
+<div class="row"><button class="go" id="exp" disabled>Скачать MP3</button><span id="msg"></span></div></section>
+</main>
+<footer style="text-align:center;opacity:.65;font-size:13px;padding:0 16px 28px">BLATOVATELmp3 · версия 1.4</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const P={speed:1,pitch:0,bass:0,reverb:0,size:3,echo:0,pan8d:0,muffle:0,trance:0,trate:8,vol:1};
+const D={...P};
+const C=[
+['speed','Скорость и тон',0.5,3,0.01,v=>'×'+v.toFixed(2)],
+['pitch','Тон без ускорения',-12,12,0.5,v=>(v>0?'+':'')+v+' полутонов'],
+['bass','Бас-буст',0,24,0.5,v=>'+'+v+' дБ'],
+['reverb','Реверб',0,2,0.01,v=>Math.round(v*100)+'%'],
+['size','Размер зала',0.5,20,0.1,v=>v.toFixed(1)+' с'],
+['echo','Эхо',0,1,0.01,v=>Math.round(v*100)+'%'],
+['pan8d','8D вокруг головы',0,1,0.01,v=>Math.round(v*100)+'%'],
+['muffle','Под водой',0,1,0.01,v=>Math.round(v*100)+'%'],
+['trance','Транс-гейт',0,1,0.01,v=>Math.round(v*100)+'%'],
+['trate','Темп транса',1,16,0.5,v=>v+' Гц'],
+['vol','Громкость',0,1.5,0.01,v=>Math.round(v*100)+'%']];
+const PRE=[
+['Slowed + Reverb',{speed:.82,reverb:.55,size:4.5,bass:4}],
+['Спидап',{speed:1.9,reverb:.1}],
+['Писклявый',{speed:2.7,reverb:.2}],
+['Бас-буст',{bass:14,reverb:.05}],
+['8D',{pan8d:.9,reverb:.25}],
+['Под водой',{muffle:.8,reverb:.5,size:3,speed:.92}],
+['Транс',{trance:.9,trate:8,reverb:.6,size:5,bass:6,echo:.3}],
+['Реверб-бездна',{reverb:2,size:16,echo:.5,speed:.85,bass:3}],
+['Сброс',{}]];
+const lpF=m=>22000*Math.pow(300/22000,m);
+
+const ctls=$('ctls'),outs={},ins={};
+C.forEach(([k,l,mn,mx,st,f])=>{
+ const d=document.createElement('div');d.className='ctl';
+ d.innerHTML=`<label for="i_${k}">${l}<output id="o_${k}"></output></label><input type="range" id="i_${k}" min="${mn}" max="${mx}" step="${st}" value="${P[k]}">`;
+ ctls.appendChild(d);ins[k]=d.querySelector('input');outs[k]=d.querySelector('output');
+ ins[k].addEventListener('input',()=>{P[k]=+ins[k].value;sync();});
+ ins[k].addEventListener('change',()=>{if(k==='size')newIR();});
+});
+const pre=$('presets');
+PRE.forEach(([n,v])=>{const b=document.createElement('button');b.textContent=n;
+ b.onclick=()=>{Object.assign(P,D,v);C.forEach(([k])=>ins[k].value=P[k]);newIR();sync();};pre.appendChild(b);});
+
+let ac,G,an,file,buf,inp,node,playing=false,off=0,t0=0,lastSp=1,tok=0;
+const pos=()=>playing?Math.min(buf.duration,off+(ac.currentTime-t0)*lastSp):off;
+function stopNode(){tok++;if(node){try{node.stop()}catch(e){}node.disconnect();node=null;}}
+function playFrom(o){
+ stopNode();const my=tok;node=ac.createBufferSource();node.buffer=buf;node.playbackRate.value=P.speed;
+ node.connect(inp);off=o;t0=ac.currentTime;lastSp=P.speed;playing=true;node.start(0,o);
+ node.onended=()=>{if(my===tok){playing=false;off=0;$('play').textContent='▶';}};
+ $('play').textContent='❚❚';}
+function pause(){off=pos();stopNode();playing=false;$('play').textContent='▶';}
+
+
+function ir(ctx,sec){
+ const n=Math.floor(ctx.sampleRate*sec),b=ctx.createBuffer(2,n,ctx.sampleRate);
+ for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,1.7);}
+ return b;}
+function shifter(ctx,inp){
+ const sr=ctx.sampleRate,T=.1,F=.05,L=Math.floor(T*sr),FL=Math.floor(F*sr);
+ const mk=f=>{const b=ctx.createBuffer(1,L,sr),d=b.getChannelData(0);for(let i=0;i<L;i++)d[i]=f(i);return b;};
+ const up=mk(i=>(L-i)/L),dn=mk(i=>i/L),fade=mk(i=>i<FL?Math.sqrt(i/FL):i>=L-FL?Math.sqrt((L-i)/FL):1);
+ const out=ctx.createGain(),t=ctx.currentTime+.05,gu=[],gd=[],dm=[];
+ [0,1].forEach(k=>{
+  const s=t+(k?T-F:0),mu=ctx.createBufferSource(),md=ctx.createBufferSource(),fs=ctx.createBufferSource();
+  mu.buffer=up;md.buffer=dn;fs.buffer=fade;mu.loop=md.loop=fs.loop=true;
+  const a=ctx.createGain(),b=ctx.createGain(),m=ctx.createGain(),dl=ctx.createDelay(1),mx=ctx.createGain();
+  gu.push(a);gd.push(b);dm.push(m);
+  mu.connect(a);md.connect(b);a.connect(m);b.connect(m);m.connect(dl.delayTime);
+  mx.gain.value=0;fs.connect(mx.gain);inp.connect(dl);dl.connect(mx);mx.connect(out);
+  mu.start(s);md.start(s);fs.start(s);
+ });
+ return{out,set(st){const R=Math.pow(2,st/12),u=R>=1,x=ctx.currentTime;
+  gu.forEach(g=>g.gain.setValueAtTime(u?1:0,x));gd.forEach(g=>g.gain.setValueAtTime(u?0:1,x));
+  dm.forEach(g=>g.gain.setTargetAtTime(Math.abs(R-1)*T,x,.01));}};
+}
+function build(ctx,src,p,out){
+ const bass=ctx.createBiquadFilter();bass.type='lowshelf';bass.frequency.value=110;bass.gain.value=p.bass;
+ const lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=lpF(p.muffle);
+ const dry=ctx.createGain(),wet=ctx.createGain(),cv=ctx.createConvolver();
+ cv.buffer=ir(ctx,p.size);dry.gain.value=Math.max(.15,1-p.reverb*.35);wet.gain.value=p.reverb*2.2;
+ const dl=ctx.createDelay(1),fb=ctx.createGain(),eg=ctx.createGain();
+ dl.delayTime.value=.34;fb.gain.value=.45;eg.gain.value=p.echo*.8;
+ const pan=ctx.createStereoPanner(),lfo=ctx.createOscillator(),lg=ctx.createGain();
+ lfo.frequency.value=.16;lg.gain.value=p.pan8d;lfo.connect(lg);lg.connect(pan.pan);lfo.start();
+ const comp=ctx.createDynamicsCompressor(),master=ctx.createGain(),mix=ctx.createGain();
+ const gate=ctx.createGain(),tl=ctx.createOscillator(),tg=ctx.createGain(),tf=ctx.createBiquadFilter();
+ tl.type='square';tl.frequency.value=p.trate;tf.type='lowpass';tf.frequency.value=250;
+ gate.gain.value=1-p.trance/2;tg.gain.value=p.trance/2;
+ tl.connect(tf);tf.connect(tg);tg.connect(gate.gain);tl.start();
+ master.gain.value=p.vol;
+ const sh=shifter(ctx,src),pd=ctx.createGain(),pw=ctx.createGain(),pm=ctx.createGain();
+ sh.set(p.pitch);pd.gain.value=p.pitch?0:1;pw.gain.value=p.pitch?1:0;
+ src.connect(pd);pd.connect(pm);sh.out.connect(pw);pw.connect(pm);
+ pm.connect(bass);bass.connect(lp);
+ lp.connect(dry);lp.connect(cv);cv.connect(wet);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(eg);
+ dry.connect(mix);wet.connect(mix);eg.connect(mix);
+ mix.connect(gate);gate.connect(pan);pan.connect(comp);comp.connect(master);master.connect(out);
+ return{bass,lp,dry,wet,cv,eg,lg,master,gate,tg,tl,sh,pd,pw};
+}
+function init(){
+ if(ac)return;
+ ac=new (window.AudioContext||window.webkitAudioContext)();
+ try{navigator.audioSession.type='playback'}catch(e){}
+ try{const sl=new Audio(URL.createObjectURL(wav({numberOfChannels:1,length:4000,sampleRate:8000,getChannelData:()=>new Float32Array(4000)})));sl.loop=true;sl.play().catch(()=>{});}catch(e){}
+ an=ac.createAnalyser();an.fftSize=256;an.connect(ac.destination);
+ inp=ac.createGain();G=build(ac,inp,P,an);
+ draw();
+}
+function newIR(){if(G)G.cv.buffer=ir(ac,P.size);}
+function sync(){
+ C.forEach(([k,,,,,f])=>outs[k].textContent=f(P[k]));
+ if(playing){off=pos();t0=ac.currentTime;lastSp=P.speed;node.playbackRate.value=P.speed;}
+ if(!G)return;const t=ac.currentTime,s=.03;
+ G.bass.gain.setTargetAtTime(P.bass,t,s);
+ G.lp.frequency.setTargetAtTime(lpF(P.muffle),t,s);
+ G.dry.gain.setTargetAtTime(Math.max(.15,1-P.reverb*.35),t,s);
+ G.wet.gain.setTargetAtTime(P.reverb*2.2,t,s);
+ G.eg.gain.setTargetAtTime(P.echo*.8,t,s);
+ G.lg.gain.setTargetAtTime(P.pan8d,t,s);
+ G.master.gain.setTargetAtTime(P.vol,t,s);
+ G.sh.set(P.pitch);G.pd.gain.setTargetAtTime(P.pitch?0:1,t,s);G.pw.gain.setTargetAtTime(P.pitch?1:0,t,s);
+ G.gate.gain.setTargetAtTime(1-P.trance/2,t,s);
+ G.tg.gain.setTargetAtTime(P.trance/2,t,s);
+ G.tl.frequency.setTargetAtTime(P.trate,t,s);
+}
+sync();
+
+function load(f){
+ if(!f)return;file=f;init();ac.resume();
+ $('name').textContent=f.name+' (загрузка…)';$('player').hidden=false;stopNode();playing=false;off=0;
+ f.arrayBuffer().then(a=>ac.decodeAudioData(a)).then(b=>{buf=b;$('name').textContent=f.name;$('tname').value=f.name.replace(/\.[^.]+$/,'');$('exp').disabled=false;$('msg').textContent='';ac.resume().then(()=>{if(ac.state==='running')playFrom(0);else $('name').textContent=f.name+' — нажми ▶';});}).catch(()=>{$('name').textContent='Не удалось прочитать файл';});
+ 
+ 
+}
+$('file').onchange=e=>load(e.target.files[0]);
+const dz=$('drop');
+['dragenter','dragover'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.add('on')}));
+['dragleave','drop'].forEach(v=>dz.addEventListener(v,e=>{e.preventDefault();dz.classList.remove('on')}));
+dz.addEventListener('drop',e=>load(e.dataTransfer.files[0]));
+
+const pb=$('play');
+addEventListener('pointerdown',()=>{init();ac.resume();});
+pb.onclick=()=>{if(!buf)return;ac.resume().then(()=>playing?pause():playFrom(off));};
+
+const fmt=s=>isFinite(s)?Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0'):'0:00';
+function tick(){if(!buf)return;const p=pos();if(!seeking)$('seek').value=p/buf.duration*1000;$('time').textContent=fmt(p)+' / '+fmt(buf.duration);}
+let seeking=false;const sk=$('seek');
+sk.oninput=()=>{seeking=true;};
+sk.onchange=()=>{seeking=false;if(buf){const o=sk.value/1000*buf.duration;playing?playFrom(o):off=o;}};
+
+/* визуализатор */
+const cv=$('cv'),x=cv.getContext('2d');let H=0;
+function fit(){cv.width=innerWidth;cv.height=innerHeight;}
+addEventListener('resize',fit);fit();
+function draw(){
+ requestAnimationFrame(draw);tick();
+ const d=new Uint8Array(an.frequencyBinCount);an.getByteFrequencyData(d);
+ let b=0;for(let i=0;i<6;i++)b+=d[i];b/=6*255;
+ document.documentElement.style.setProperty('--pulse',(1+b*.08).toFixed(3));
+ H=(H+.6+b*3)%360;
+ x.clearRect(0,0,cv.width,cv.height);
+ x.globalCompositeOperation='lighter';x.lineWidth=3;
+ const cx=cv.width/2,cy=cv.height*.42,R=Math.min(cv.width,cv.height)*(.2+b*.12);
+ const n=d.length*.6|0;
+ for(let r=0;r<3;r++){
+  x.beginPath();
+  for(let i=0;i<=n;i++){
+   const v=d[i%n]/255,a=i/n*Math.PI*2+H*.01*(r+1),rad=R*(1+r*.55)+v*90*(1+r*.3);
+   const px=cx+Math.cos(a)*rad,py=cy+Math.sin(a)*rad;
+   i?x.lineTo(px,py):x.moveTo(px,py);
+  }
+  x.closePath();x.strokeStyle=`hsla(${(H+r*70)%360},100%,60%,${.35+b*.4})`;x.stroke();
+ }
+}
+
+function crc32(u){const t=crc32.t||(crc32.t=[...Array(256)].map((_,n)=>{let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;return c>>>0}));let r=-1;for(let i=0;i<u.length;i++)r=t[(r^u[i])&255]^(r>>>8);return(r^-1)>>>0}
+function zip(name,data){
+ const nb=new TextEncoder().encode(name),crc=crc32(data),n=data.length;
+ const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x800,true);lh.setUint32(14,crc,true);lh.setUint32(18,n,true);lh.setUint32(22,n,true);lh.setUint16(26,nb.length,true);
+ const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x800,true);ch.setUint32(16,crc,true);ch.setUint32(20,n,true);ch.setUint32(24,n,true);ch.setUint16(28,nb.length,true);
+ const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,1,true);e.setUint16(10,1,true);e.setUint32(12,46+nb.length,true);e.setUint32(16,30+nb.length+n,true);
+ return new Blob([lh,nb,data,ch,nb,e],{type:'application/zip'});}
+function toMp3(r){
+ const enc=new lamejs.Mp3Encoder(2,r.sampleRate,192),L=r.getChannelData(0),R=r.numberOfChannels>1?r.getChannelData(1):L;
+ const cv=a=>{const o=new Int16Array(a.length);for(let i=0;i<a.length;i++){const s=Math.max(-1,Math.min(1,a[i]));o[i]=s<0?s*32768:s*32767;}return o;};
+ const l=cv(L),rr=cv(R),parts=[];
+ for(let i=0;i<l.length;i+=1152){const b=enc.encodeBuffer(l.subarray(i,i+1152),rr.subarray(i,i+1152));if(b.length)parts.push(b);}
+ const e=enc.flush();if(e.length)parts.push(e);
+ const n=parts.reduce((s,p)=>s+p.length,0),out=new Uint8Array(n);let o=0;parts.forEach(p=>{out.set(p,o);o+=p.length;});
+ return out;}
+/* экспорт WAV */
+function wav(buf){
+ const ch=buf.numberOfChannels,len=buf.length,out=new DataView(new ArrayBuffer(44+len*ch*2));
+ const w=(o,s)=>[...s].forEach((c,i)=>out.setUint8(o+i,c.charCodeAt(0)));
+ w(0,'RIFF');out.setUint32(4,36+len*ch*2,true);w(8,'WAVEfmt ');out.setUint32(16,16,true);
+ out.setUint16(20,1,true);out.setUint16(22,ch,true);out.setUint32(24,buf.sampleRate,true);
+ out.setUint32(28,buf.sampleRate*ch*2,true);out.setUint16(32,ch*2,true);out.setUint16(34,16,true);
+ w(36,'data');out.setUint32(40,len*ch*2,true);
+ const dt=[];for(let c=0;c<ch;c++)dt.push(buf.getChannelData(c));
+ let o=44;for(let i=0;i<len;i++)for(let c=0;c<ch;c++){const s=Math.max(-1,Math.min(1,dt[c][i]));out.setInt16(o,s<0?s*32768:s*32767,true);o+=2;}
+ return new Blob([out],{type:'audio/wav'});
+}
+$('exp').onclick=async()=>{
+ const m=$('msg'),b=$('exp');b.disabled=true;m.textContent='Рендерим…';
+ try{
+  const src=buf;
+  const sr=44100,sec=src.duration/P.speed+(P.reverb>0?P.size:0)+(P.echo>0?2:0)+.2;
+  const oc=new OfflineAudioContext(2,Math.ceil(sec*sr),sr);
+  const s=oc.createBufferSource();s.buffer=src;s.playbackRate.value=P.speed;
+  build(oc,s,P,oc.destination);s.start();
+  const r=await oc.startRendering();
+  const base=($('tname').value.trim()||'BLATOVATEL').replace(/[\\/:*?"<>|]/g,'_');
+  const dl=(window.claude&&typeof claude.use==='function')?await claude.use('downloads').catch(()=>null):null;
+  
+  if(!window.lamejs){m.textContent='Не загрузился mp3-кодировщик';b.disabled=false;return;}
+  m.textContent='Кодируем в mp3…';await new Promise(res=>setTimeout(res,30));
+  const mp3=toMp3(r);
+  if(dl){await dl.save({filename:base+'.zip',data:zip(base+'.mp3',mp3)});m.textContent='Готово: в ZIP-архиве лежит mp3';}
+  else{
+   const blob=new Blob([mp3],{type:'audio/mpeg'}),fl=new File([blob],base+'.mp3',{type:'audio/mpeg'});
+   if(/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[fl]})){
+    m.textContent='Готово. ';const bt=document.createElement('button');bt.textContent='Сохранить файл';
+    bt.onclick=()=>navigator.share({files:[fl],title:base}).catch(()=>{});m.appendChild(bt);
+   }else{
+    const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=base+'.mp3';document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(u),60000);m.textContent='Готово, mp3 скачан';
+   }
+  }
+  
+  
+ }catch(e){console.error(e);m.textContent=e&&e.code==='declined'?'Сохранение отменено':'Не получилось сохранить файл. Ошибка: '+((e&&(e.code||e.name))||'?')+' — '+((e&&e.message)||e);}
+ b.disabled=false;
+};
+</script>
+</body></html>
